@@ -1,24 +1,61 @@
 # https://varnish-cache.org/docs/7.4/reference/vcl.html#versioning
 vcl 4.1;
 
+# Import std for duration comparisons & access to env vars
 import std;
 
-# Thanks Matt Johnson! 👋
-# - https://github.com/magento/magento2/blob/03621bbcd75cbac4ffa8266a51aa2606980f4830/app/code/Magento/PageCache/etc/varnish6.vcl
-# - https://abhishekjakhotiya.medium.com/magento-internals-cache-purging-and-cache-tags-bf7772e60797
+# Import vmod_dynamic to resolve backend hosts via DNS
+import dynamic;
 
-backend default {
-  .host = "top1.nearest.of.changelog-2024-01-12.internal";
-  .host_header = "changelog-2024-01-12.fly.dev";
-  .port = "4000";
-  .first_byte_timeout = 5s;
-  .probe = {
-    .url = "/health";
-    .timeout = 2s;
-    .interval = 5s;
-    .window = 10;
-    .threshold = 5;
+# Disable default backend, we are using dynamic backends **only**
+backend default none;
+
+# Force IPv6 backends **only**
+acl ipv6_only { "::0"/0; }
+
+probe changelog_health {
+  .url = "/health";
+  .interval = 5s;
+  .timeout = 2s;
+  .window = 10;
+  .threshold = 5;
+}
+
+# Setup a dynamic director
+sub vcl_init {
+  # https://github.com/nigoroll/libvmod-dynamic/blob/3697d6f195fe077fe213918b7b67f5da4efdede2/src/tbl/list_prop.h
+  new changelog = dynamic.director(
+    ttl = 10s,
+    probe = changelog_health,
+    host_header = "changelog-2024-01-12.fly.dev",
+    first_byte_timeout = 5s,
+    connect_timeout = 5s,
+    between_bytes_timeout = 30s,
+    whitelist = ipv6_only
+  );
+}
+
+
+# NOTE: vcl_recv is called at the beginning of a request, after the complete
+# request has been received and parsed. Its purpose is to decide whether or not
+# to serve the request, how to do it, and, if applicable, which backend to use.
+sub vcl_recv {
+  # https://varnish-cache.org/docs/7.4/users-guide/purging.html
+  if (req.method == "PURGE") {
+    return (purge);
   }
+
+  # Implement a Varnish health-check
+  if (req.method == "GET" && req.url == "/varnish_health") {
+    return(synth(204));
+  }
+
+  # Make it clear what component we are health-checking
+  if (req.method == "GET" && req.url == "/backend_health") {
+    set req.url = "/health";
+  }
+
+  set req.backend_hint = changelog.backend("changelog-2024-01-12.internal", "4000");
 }
 
 # https://varnish-cache.org/docs/7.4/users-guide/vcl-grace.html
@@ -51,43 +88,34 @@ sub vcl_backend_response {
   # 🤔 QUESTION: Should we configure beresp.keep?
 }
 
-# NOTE: vcl_recv is called at the beginning of a request, after the complete
-# request has been received and parsed. Its purpose is to decide whether or not
-# to serve the request, how to do it, and, if applicable, which backend to use.
-sub vcl_recv {
-  # https://varnish-cache.org/docs/7.4/users-guide/purging.html
-  if (req.method == "PURGE") {
-    return (purge);
-  }
-
-  # Implement a Varnish health-check
-  if (req.method == "GET" && req.url == "/varnish_status") {
-    return(synth(204));
-  }
-}
 
 # https://gist.github.com/leotsem/1246511/824cb9027a0a65d717c83e678850021dad84688d#file-default-vcl-pl
 # https://varnish-cache.org/docs/7.4/reference/vcl-var.html#obj
 sub vcl_deliver {
+  set resp.http.cache-status = "Edge";
+
   # What is the remaining TTL for this object?
-  set resp.http.x-ttl = obj.ttl;
+  set resp.http.cache-status = resp.http.cache-status + "; ttl=" + obj.ttl;
   # What is the max object staleness permitted?
-  set resp.http.x-grace = obj.grace;
+  set resp.http.cache-status = resp.http.cache-status + "; grace=" + obj.grace;
 
   # Did the response come from Varnish or from the backend?
   if (obj.hits > 0) {
-    set resp.http.x-cache = "HIT";
+    set resp.http.cache-status = resp.http.cache-status + "; hit";
   } else {
-    set resp.http.x-cache = "MISS";
+    set resp.http.cache-status = resp.http.cache-status + "; miss";
   }
 
   # Is this object stale?
-  if (obj.ttl < std.duration(integer=0)) {
-    set resp.http.x-cache = "STALE";
+  if (obj.hits > 0 && obj.ttl < std.duration(integer=0)) {
+    set resp.http.cache-status = resp.http.cache-status + "; stale";
   }
 
   # How many times has this response been served from Varnish?
-  set resp.http.x-cache-hits = obj.hits;
+  set resp.http.cache-status = resp.http.cache-status + "; hits=" + obj.hits;
+
+  # Which region is serving this request?
+  set resp.http.cache-status = resp.http.cache-status + "; region=" + std.getenv("FLY_REGION");
 }
 
 # TODOS:
@@ -97,21 +125,26 @@ sub vcl_deliver {
 #   - QUESTION: Should the app control this via Surrogate-Control? Should we remove this header?
 #   - EXPLORE: varnishstat
 #   - EXPLORE: varnishtop
-#   - EXPLORE: varnishncsa -c -F '%m %U %H %{x-cache}o %{x-cache-hits}o'
+#   - EXPLORE: varnishncsa -c -f '%m %u %h %{x-cache}o %{x-cache-hits}o'
 # - ✅ Serve stale content on backend error
 #   - https://varnish-cache.org/docs/7.4/users-guide/vcl-grace.html#misbehaving-servers
-# - If the backend gets restarted (e.g. new deploy), backend remains sick in Varnish
+# - ✅ Expose FLY_REGION=sjc env var as a custom header
+#   - https://github.com/varnish/docker-varnish/blob/45c6204864d46dbd9e18485c91f915f89f822859/old/debian/default.vcl#L35
+# - ✅ If the backend gets restarted (e.g. new deploy), backend remains sick in Varnish
 #   - https://info.varnish-software.com/blog/two-minute-tech-tuesdays-backend-health
 #   - EXPLORE: varnishlog -g raw -i backend_health
-# - Implement If-Modified-Since? keep
-# - Expose FLY_REGION=sjc env var as a custom header
-#   - https://varnish-cache.org/lists/pipermail/varnish-misc/2019-September/026656.html
+#   - EXPLORE: varnishadm backend.list
 # - Add Feeds backend: /feed -> https://feeds.changelog.place/feed.xml
+# - Send logs to Honeycomb.io
 # - Store cache on disk? A pre-requisite for static backend 
 #   - https://varnish-cache.org/docs/trunk/users-guide/storage-backends.html#file
-# - Add Static backend: cdn.changelog.com requests
 #
 # FOLLOW-UPs:
 # - Run varnishncsa as a separate process (will need a supervisor + log drain)
 #   - https://info.varnish-software.com/blog/varnish-and-json-logging
 # - How to cache purge across all varnish instances?
+# - Implement If-Modified-Since? keep
+#
+# LINKS:
+# - https://github.com/magento/magento2/blob/03621bbcd75cbac4ffa8266a51aa2606980f4830/app/code/Magento/PageCache/etc/varnish6.vcl
+# - https://abhishekjakhotiya.medium.com/magento-internals-cache-purging-and-cache-tags-bf7772e60797
