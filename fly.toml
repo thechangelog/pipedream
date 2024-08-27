@@ -1,14 +1,16 @@
 # Full app config reference: https://fly.io/docs/reference/configuration/
-app = "cdn-2024-01-26"
-# Closest to James
-primary_region = "sjc"
-# Secondary region will be "lhr", closest to Gerhard
+app = "cdn-2024-08-02"
+# Closest to the origin
+primary_region = "iad"
 
 kill_signal = "SIGTERM"
 kill_timeout = 30
 
 [env]
-VARNISH_SIZE="500M"
+# We want a low value so that:
+# - we leave room for "sidecar" processes (log drains, purge worker, etc.)
+# - easier to test what happens when the memory fills up
+VARNISH_SIZE="100M"
 
 [[vm]]
 size = "shared-cpu-1x"
@@ -25,9 +27,9 @@ protocol = "tcp"
 grace_period = "5s"
 interval = "5s"
 method = "get"
-path = "/varnish_status"
+path = "/varnish_health"
 protocol = "http"
-timeout = "4s"
+timeout = "3s"
 
 [[services.ports]]
 handlers = ["tls", "http"]
