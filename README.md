@@ -2,7 +2,9 @@
 
 A single-purpose, single-tenant CDN for [changelog.com](https://changelog.com).
 Runs [Varnish Cache](https://varnish-cache.org/releases/index.html) (open
-source) on [Fly.io](https://fly.io/changelog). This repository exists for a single reason: build the simplest CDN on [Fly.io](https://fly.io/changelog).
+source) on [Fly.io](https://fly.io/changelog). This repository exists for a
+single reason: build the simplest CDN on [Fly.io](https://fly.io/changelog).
+You are welcome to fork it and make it your own. OSS FTW 💚
 
 ## How it started
 
@@ -21,7 +23,11 @@ source) on [Fly.io](https://fly.io/changelog). This repository exists for a sing
 ## How is it going
 
 - [x] Static backend, 1 day stale, stale on error, x-headers - `46` lines of VCL 
-- [ ] Dynamic backend, cache-status header - `55` lines of VCL
+- [x] Dynamic backend, cache-status header - `60` lines of VCL
+- [ ] Add Feeds backend: /feed -> https://feeds.changelog.place/feed.xml
+- [ ] Send logs to Honeycomb.io (same structure as Fastly logs so that queries work the same)
+- [ ] Purge across all instances
+- [ ] Add edge redirects from [Fastly service](https://manage.fastly.com/configure/services/7gKbcKSKGDyqU7IuDr43eG)
 
 ## How can you help
 
@@ -36,4 +42,4 @@ Hope to see you in our Slack: <https://changelog.slack.com> 👋
 ## Contributors
 
 - [James A Rosen](https://www.jamesarosen.com/), Staff Engineer
-- [Matt Johnson](https://github.com/mttjohnson), Sr Site Reliability Engineer
+- [Matt Johnson](https://github.com/mttjohnson), Senior Site Reliability Engineer
