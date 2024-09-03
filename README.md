@@ -18,15 +18,15 @@ You are welcome to fork it and make it your own. OSS FTW 💚
 > Varnish config will be slightly longer than 20 lines, and we’d run into all
 > sorts of issues that we end up sinking all kinds of time into.
 >
-> Jerod Santo - March 29, 2024 - <a href="https://changelog.com/friends/38#transcript-208" target="_blank">Changelog & Friends #38</a>
+> 🧢 Jerod Santo - March 29, 2024 - <a href="https://changelog.com/friends/38#transcript-208" target="_blank">Changelog & Friends #38</a>
 
-## How is it going
+## How is it going (a.k.a. Roadmap)
 
-- [x] Static backend, 1 day stale, stale on error, x-headers - `46` lines of VCL 
-- [x] Dynamic backend, cache-status header - `60` lines of VCL
+- [x] Static backend, 1 day stale, stale on error, x-headers - `46` lines of VCL - [Initial commit](https://github.com/thechangelog/pipedream/commit/17d3899a52d9dc887efd7f49de92b24249431234)
+- [x] Dynamic backend, cache-status header - `60` lines of VCL - [PR #1](https://github.com/thechangelog/pipedream/commit/12086a1e98b10aaf057becf645218344e4b74cd6)
 - [ ] Add Feeds backend: /feed -> https://feeds.changelog.place/feed.xml
-- [ ] Send logs to Honeycomb.io (same structure as Fastly logs so that queries work the same)
-- [ ] Purge across all instances
+- [ ] Send logs to Honeycomb.io (same structure as Fastly logs)
+- [ ] Implement purge across all app instances (Fly.io machines)
 - [ ] Add edge redirects from [Fastly service](https://manage.fastly.com/configure/services/7gKbcKSKGDyqU7IuDr43eG)
 
 ## How can you help
