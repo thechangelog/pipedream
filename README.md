@@ -37,7 +37,7 @@ straight for a pull request. We make this as easy as possible:
 - This repository is kept small & simple (single purpose: build the simplest CDN on Fly.io)
 - Slow & thoughtful approach - join our journey via [audio with transcripts](https://changelog.com/topic/kaizen) or [written](https://github.com/thechangelog/changelog.com/discussions/categories/kaizen)
 
-Hope to see you in our Slack: <https://changelog.slack.com> 👋
+See you in our Slack 👋 join from <https://changelog.com/~> (requires signing up).
 
 ## Contributors
 
