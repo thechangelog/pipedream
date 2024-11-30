@@ -23,9 +23,9 @@ You are welcome to fork it and make it your own. OSS FTW 💚
 ## How is it going (a.k.a. Roadmap)
 
 - [x] Static backend, 1 day stale, stale on error, x-headers - `46` lines of VCL - [Initial commit](https://github.com/thechangelog/pipedream/commit/17d3899a52d9dc887efd7f49de92b24249431234)
-- [x] Dynamic backend, cache-status header - `60` lines of VCL - [PR #1](https://github.com/thechangelog/pipedream/commit/12086a1e98b10aaf057becf645218344e4b74cd6)
-- [ ] Test harness
-- [ ] Add Feeds backend: /feed -> https://feeds.changelog.place/feed.xml
+- [x] Dynamic backend, cache-status header - `60` lines of VCL - [PR #1](https://github.com/thechangelog/pipedream/pull/1)
+- [x] Add tests - `60` lines of VCL - [PR #3](https://github.com/thechangelog/pipedream/pull/3)
+- [ ] Add feeds backend: /feed -> http://feeds.changelog.place/feed.xml
 - [ ] Send logs to Honeycomb.io (same structure as Fastly logs)
 - [ ] Send logs to S3 (for stats)
 - [ ] Implement purge across all app instances (Fly.io machines)
@@ -43,5 +43,5 @@ See you in our Slack 👋 join from <https://changelog.com/~> (requires signing 
 
 ## Contributors
 
-- [James A Rosen](https://www.jamesarosen.com/), Staff Engineer
+- [James A Rosen](https://www.jamesarosen.com/now), Staff Engineer
 - [Matt Johnson](https://github.com/mttjohnson), Senior Site Reliability Engineer

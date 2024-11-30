@@ -1,0 +1,22 @@
+name: Namespace.so
+
+on:
+  workflow_call:
+
+jobs:
+  run:
+    runs-on:
+      - nscloud-ubuntu-24.04-amd64-2x4
+    steps:
+      - name: "Checkout code..."
+        uses: namespacelabs/nscloud-checkout-action@v5
+
+      - uses: extractions/setup-just@v2
+        with:
+          just-version: "1.37.0"
+
+      - name: "Test..."
+        run: |
+          just test --verbose
+        env:
+          TERM: xterm
