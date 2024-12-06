@@ -6,7 +6,8 @@ on:
 jobs:
   run:
     runs-on:
-      - nscloud-ubuntu-24.04-amd64-2x4
+      - nscloud-ubuntu-24.04-amd64-2x4-with-cache
+      - nscloud-git-mirror-5gb
     steps:
       - name: "Checkout code..."
         uses: namespacelabs/nscloud-checkout-action@v5
