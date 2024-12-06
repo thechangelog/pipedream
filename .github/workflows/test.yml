@@ -1,0 +1,32 @@
+name: Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+# All jobs have the same outcome. We define multiple for resiliency reasons.
+jobs:
+  # In thechangelog/pipedream repository (a.k.a. upstream),
+  # this is the preferred default (i.e. custom runners, faster than GitHub):
+  on-namespace:
+    if: ${{ contains(vars.RUNS_ON, 'namespace') }}
+    uses: ./.github/workflows/_namespace.yml
+    secrets: inherit
+
+  # Just in case Namespace.so misbehaves, we want a fallback.
+  # Always run two of everything™
+  on-github-fallback:
+    needs: on-namespace
+    if: ${{ failure() }}
+    uses: ./.github/workflows/_github.yml
+    secrets: inherit
+
+  # As forks will not have access to our Namespace.so custom runners,
+  # we fallback to the default GitHub free runners:
+  on-github:
+    if: ${{ !contains(vars.RUNS_ON, 'namespace') }}
+    uses: ./.github/workflows/_github.yml
+    secrets: inherit

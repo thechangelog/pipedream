@@ -1,0 +1,21 @@
+name: GitHub
+
+on:
+  workflow_call:
+
+jobs:
+  run:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: "Checkout code..."
+        uses: actions/checkout@v4
+
+      - uses: extractions/setup-just@v2
+        with:
+          just-version: "1.37.0"
+
+      - name: "Test..."
+        run: |
+          just test --verbose
+        env:
+          TERM: xterm
