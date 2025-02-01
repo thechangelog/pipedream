@@ -24,7 +24,7 @@ header "age" toInt > 60 # has been stored in cache for MORE THAN 60s
 # Get the changelog feed ONE MORE TIME
 GET {{host}}/podcast/feed
 [Options]
-delay: 2s # wait a bit so that it refreshes from origin
+delay: 5s # wait a bit so that it refreshes from origin
 HTTP/2 200 # expect OK response via HTTP/2
 [Asserts]
 duration < 2000 # ensure that it loads sub 2s when cached

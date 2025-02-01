@@ -39,7 +39,12 @@ straight for a pull request. We make this as easy as possible:
 - This repository is kept small & simple (single purpose: build the simplest CDN on Fly.io)
 - Slow & thoughtful approach - join our journey via [audio with transcripts](https://changelog.com/topic/kaizen) or [written](https://github.com/thechangelog/changelog.com/discussions/categories/kaizen)
 
-See you in our Slack 👋 join from <https://changelog.com/~> (requires signing up).
+See you in our [Zulip Chat](https://changelog.zulipchat.com/) 👋
+
+> [!NOTE]
+> Join from <https://changelog.com/~> . It requires signing up and requesting an invite before you can **Log in**
+
+![Changelog on Zulip](./changelog.zulipchat.png)
 
 ## Contributors
 
