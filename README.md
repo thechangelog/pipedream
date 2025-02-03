@@ -31,6 +31,14 @@ You are welcome to fork it and make it your own. OSS FTW 💚
 - [ ] Implement purge across all app instances (Fly.io machines)
 - [ ] Add edge redirects from [Fastly service](https://manage.fastly.com/configure/services/7gKbcKSKGDyqU7IuDr43eG)
 
+## Local Development and Testing with Docker
+
+While it's fun watching other people experiment with digital resin (varnish 😂), it's a whole lot more fun when you can repeat those experiments yourself, understand more how it works, and make your own modifications.
+
+You can find some instructions and notes for kicking the tires and [developing with this locally using Docker](docs/local_dev.md)
+
+Some other [demonstration details can be found here](docs/README.md).
+
 ## How can you help
 
 If you have any ideas on how to improve this, please open an issue or go
