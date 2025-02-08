@@ -1,4 +1,4 @@
-# The Pipe Dream™️
+# Pipely™️
 
 A single-purpose, single-tenant CDN for [changelog.com](https://changelog.com).
 Runs [Varnish Cache](https://varnish-cache.org/releases/index.html) (open
@@ -22,10 +22,10 @@ You are welcome to fork it and make it your own. OSS FTW 💚
 
 ## How is it going (a.k.a. Roadmap)
 
-- [x] Static backend, 1 day stale, stale on error, x-headers - [Initial commit](https://github.com/thechangelog/pipedream/commit/17d3899a52d9dc887efd7f49de92b24249431234)
-- [x] Dynamic backend, cache-status header - [PR #1](https://github.com/thechangelog/pipedream/pull/1)
-- [x] Add tests - [PR #3](https://github.com/thechangelog/pipedream/pull/3)
-- [x] Make it easy to develop locally - [PR #7](https://github.com/thechangelog/pipedream/pull/7)
+- [x] Static backend, 1 day stale, stale on error, x-headers - [Initial commit](https://github.com/thechangelog/pipely/commit/17d3899a52d9dc887efd7f49de92b24249431234)
+- [x] Dynamic backend, cache-status header - [PR #1](https://github.com/thechangelog/pipely/pull/1)
+- [x] Add tests - [PR #3](https://github.com/thechangelog/pipely/pull/3)
+- [x] Make it easy to develop locally - [PR #7](https://github.com/thechangelog/pipely/pull/7)
 - [ ] Add feeds backend: /feed -> http://feeds.changelog.place/feed.xml
 - [ ] Send logs to Honeycomb.io (same structure as Fastly logs)
 - [ ] Send logs to S3 (for stats)
