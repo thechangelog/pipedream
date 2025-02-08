@@ -26,6 +26,7 @@ You are welcome to fork it and make it your own. OSS FTW 💚
 - [x] Dynamic backend, cache-status header - [PR #1](https://github.com/thechangelog/pipely/pull/1)
 - [x] Add tests - [PR #3](https://github.com/thechangelog/pipely/pull/3)
 - [x] Make it easy to develop locally - [PR #7](https://github.com/thechangelog/pipely/pull/7)
+- [ ] Support TLS origins
 - [ ] Add feeds backend: /feed -> http://feeds.changelog.place/feed.xml
 - [ ] Send logs to Honeycomb.io (same structure as Fastly logs)
 - [ ] Send logs to S3 (for stats)
