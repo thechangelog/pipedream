@@ -2,7 +2,7 @@
 
 [private]
 default:
-    just --list
+    @just --list
 
 [private]
 fmt:
