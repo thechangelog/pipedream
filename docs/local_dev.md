@@ -1,34 +1,70 @@
-# Local Development and Testing with Docker
+# Local Development and Testing
 
 > [!NOTE]  
 > If `/default.vlc` is changed, these examples may need to be updated to reflect any backend domain changes.
 
-The notes here should help guide you through recreating the steps needed to run this locally using Docker. A local docker setup should provide fast feedback for introducing changes and observing behavior.
+The notes here should help guide you through recreating the steps needed to run
+this locally using Docker. A [local Docker
+setup](https://docs.docker.com/engine/install/) should provide fast feedback
+for introducing changes and observing behavior.
 
-This will set up two containers which should provide the majority of the pieces needed for testing varnish in isolation. The nginx container will be used to simulate a frontend load balancer receiving initial requests and reverse proxying the requests to Varnish just like a cloud load balancer would. The nginx container will also be setup to provide mock HTTP responses mimicing a backend application that Varnish is intended to be caching requests for.
+This will set up two containers - nginx & varnish -which should provide the
+majority of the pieces needed for testing varnish in isolation. The nginx
+container will be used to simulate a frontend load balancer receiving initial
+requests and reverse proxying the requests to Varnish just like a cloud load
+balancer would. The nginx container will also be setup to provide mock HTTP
+responses mimicing a backend application that Varnish is intended to be caching
+requests for.
 
-```
 Requests from the docker host:
-[docker host (80, 443)] -> [nginx lb (80, 443)] -> [docker host (9000)] -> [varnish (9000)] -> [nginx backend (4000)]
+```
+[docker host (80, 443)]
+|
+\-> [nginx lb (80, 443)]
+    |
+    \-> [docker host (9000)]
+        |
+        \-> [varnish (9000)]
+            |
+            \-> [nginx backend (4000)]
+```
+
 
 Responses from the nginx backend:
-[nginx backend (4000)] -> [varnish (9000)] -> [docker host (9000)] -> [nginx lb (80, 443)] -> [docker host (80, 443)]
+```
+[nginx backend (4000)]
+|
+\-> [varnish (9000)]
+    |
+    \-> [docker host (9000)]
+        |
+        \-> [nginx lb (80, 443)]
+            |
+            \-> [docker host (80, 443)]
 ```
 
 
 
 ## Setup Requirements
 
-While the examples here may work in other environments they were created and tested on macOS Sequoia (15) and Docker Desktop.
+While the examples here are expected to work in other environments, they were
+created and tested on macOS Sequoia (15) and Docker Desktop.
 
-These examples all expects IPv6 to be there and just work (even if your local network is all IPv4). The `docker network ls` command doesn't show if a network is IPv6 or not by default, but you can see these additional details if you change the output format (example: `docker network ls --format json | jq .`).
+These examples all expects IPv6 to be there and just work (even if your local
+network is all IPv4). The `docker network ls` command doesn't show if a network
+is IPv6 or not by default, but you can see these additional details if you
+change the output format (example: `docker network ls --format json | jq .`).
 
-Check to see if you have an existing IPv6 network for Docker to use. In these examples we use the network `ip6net` so you may need to substitute that network name if yours is different.
+Check to see if you have an existing IPv6 network for Docker to use. In these
+examples we use the network `ip6net` so you may need to substitute that network
+name if yours is different.
+
 ```bash
 docker network ls --format 'table {{.ID}}\t{{.Name}}\t{{.Driver}}\t{{.Scope}}\t{{.IPv6}}'
 ```
 
 If you don't have an IPv6 network you would need to create one
+
 ```bash
 docker network create --ipv6 ip6net
 docker network inspect ip6net
@@ -38,7 +74,8 @@ docker network inspect ip6net
 
 ## Build containers
 
-Build some containers using Docker for experimenting with locally
+Build some containers using Docker for experimenting with locally:
+
 ```bash
 NGINX_APP_NAME="dev-nginx"
 NGINX_IMAGE="${NGINX_APP_NAME}:$(date +'%F.%H-%M-%S')"
@@ -66,7 +103,8 @@ docker image list
 
 ## Run containers
 
-Helpful commands to prepare for starting the containers
+Helpful commands to prepare for starting the containers:
+
 ```bash
 # zsh command to ignore comments
 setopt INTERACTIVE_COMMENTS
@@ -76,9 +114,12 @@ docker container list
 ```
 
 > [!NOTE]  
-> Environment variables can be passed into the nginx container which will build a custome nginx config based on the included template file
+> Environment variables can be passed into the nginx container which will build
+> a custome nginx config based on the included template file
 
-Start the nginx container, then get the network ipv4 and ipv6 address of the container after it has been started
+Start the nginx container, then get the network ipv4 and ipv6 address of the
+container after it has been started:
+
 ```bash
 NGINX_LB_HOST="pipedream.changelog.com nginx"
 NGINX_LB_PROXY_PASS="http://172.17.0.1:9000"
@@ -119,9 +160,11 @@ docker exec --user root dev-nginx /bin/bash -c 'cat /etc/nginx/conf.d/default.co
 ```
 
 > [!NOTE]  
-> Environment variables can be passed into the varnish container for detail about the backend domain and IP addresses to override DNS responses with dnsmasq configs.
+> Environment variables can be passed into the varnish container for detail
+> about the backend domain and IP addresses to override DNS responses with
+> dnsmasq configs.
 
-Start the varnish container, update the dnsmasq config if needed, then start dnsmasq
+Start the varnish container, update the dnsmasq config if needed, then start dnsmasq:
 ```bash
 # Start the varnish container and change dns resolver to use localhost 
 # (expecting dnsmasq to start shortly after the container is started).
@@ -146,7 +189,9 @@ docker exec --user root dev-varnish /bin/bash -c 'tail /etc/dnsmasq.conf -n 2'
 docker exec --user root dev-varnish /bin/bash -c "/etc/init.d/dnsmasq systemd-exec"
 ```
 
-While varnish doesn't output much of anything to STDOUT you can see what it does from the docker logs. Tailing the output from the `dev-nginx` container will show you the access logs of requests hitting nginx.
+While varnish doesn't output much of anything to STDOUT you can see what it
+does from the docker logs. Tailing the output from the `dev-nginx` container
+will show you the access logs of requests hitting nginx.
 
 ```bash
 # view initial varnish logs and then watch the nginx logs
@@ -156,15 +201,18 @@ docker logs -f dev-nginx
 
 
 
-## Run the Test Suite Locally
+## Run tests locally
 
-Initialize the varnish dynamic backends with an HTTP request then check the varnish backend list to see if probes are healthy
+Initialize the varnish dynamic backends with an HTTP request then check the
+varnish backend list to see if probes are healthy:
+
 ```bash
 curl -sk -D - https://localhost/
 docker exec dev-varnish /bin/bash -c "varnishadm backend.list"
 ```
 
-Run the test suite against the local containers
+Run the test suite against the local containers:
+
 ```bash
 # We need to pass the `--insecure` option because the nginx mock lb uses a self-signed cert
 hurl --test --color --report-html tmp --insecure --variable host="https://127.0.0.1" test/*.hurl
@@ -174,9 +222,12 @@ hurl --test --color --report-html tmp --insecure --variable host="https://127.0.
 
 ## Example Test Results
 
-Spinning this all up, bouncing requests back and forth, and manipulation dns queries may feel like dark magic but it seemed to provide a majority of the necessary componets for testing it all locally.
+Spinning this all up, bouncing requests back and forth, and manipulation dns
+queries may feel like dark magic but it seemed to provide a majority of the
+necessary componets for testing it all locally.
 
-There are still a few (3) assertions failing on the `test/admin.hurl` portion. This likely needs some adjustments to the backend nginx responses.
+There are still a few (3) assertions failing on the `test/admin.hurl` portion.
+This likely needs some adjustments to the backend nginx responses.
 
 ```
 $ hurl --test --color --report-html tmp --insecure --variable host="https://127.0.0.1" test/*.hurl
@@ -226,18 +277,21 @@ Duration:          67052 ms
 
 ## Interacting with and exploring inside the containers
 
-Exec into each of the containers to run commands locally
+Exec into each of the containers to run commands locally:
+
 ```bash
 docker exec -it --user root dev-varnish bash
 docker exec -it --user root dev-nginx bash
 ```
 
-If you need some additional tools inside the container
+If you need some additional tools inside the container:
+
 ```bash
 apt update && apt -y install curl net-tools vim iproute2 dnsutils procps iputils-ping
 ```
 
-Useful commands to use inside the Varnish container
+Useful commands to use inside the Varnish container:
+
 ```bash
 # swap out VCL configs (https://ma.ttias.be/reload-varnish-vcl-without-losing-cache-data/)
 TIME=$(date +%s)
@@ -266,7 +320,8 @@ varnishadm param.show
 varnishadm storage.list
 ```
 
-Check the various nginx endpoints from docker host
+Check the various nginx endpoints from docker host:
+
 ```bash
 # mock lb to varnish
 curl -sv http://localhost:80/
@@ -299,9 +354,12 @@ curl -sk -o /dev/null -D - --resolve "${curl_domain}:${curl_port}:${curl_ip_addr
 
 ## Troubleshooting and Misc
 
-If the docker containers fail to run you can remove the `-d` flag on the `docker run` command to see the output and likely potential error produced when starting it up.
+If the docker containers fail to run you can remove the `-d` flag on the
+`docker run` command to see the output and likely potential error produced when
+starting it up.
 
-Troubleshooting requests from inside the varnish container
+Troubleshooting requests from inside the varnish container:
+
 ```bash
 # display dnsmasq configs
 cat /etc/dnsmasq.conf
@@ -348,7 +406,8 @@ ps aux
 /bin/kill $(cat /run/dnsmasq/dnsmasq.pid)
 ```
 
-Misc Docker Commands
+Misc Docker Commands:
+
 ```bash
 # List the running docker containers
 docker ps

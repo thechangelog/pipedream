@@ -1,17 +1,10 @@
-## Development / Exploration / Experimentation / Demonstration
+# Docs
 
-Notes on kicking the tires and [developing with this locally using Docker](local_dev.md)
+We aim to keep docs lean & simple. GitHub is the default front-end - search
+works well enough. Your code editor is the other option.
 
-Demonstrations:
+Read next: [Developing & experimenting locally using Docker](local_dev.md)
 
-```bash
-# List project commands
-./run
-just
+---
 
-# Run Demo from 2024-06-21
-./run demo-2024-06-21
-
-# Run Test Suite
-just test
-```
+If something is missing, feel free to open a GitHub issue. Pull requests always welcome 👍
