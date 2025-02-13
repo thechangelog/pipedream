@@ -1,2 +1,2 @@
 pipely: /usr/local/bin/docker-varnish-entrypoint
-tls-exterminator: /apps/tls-exterminator
+tls-exterminator: /tls-exterminator 5000:changelog.com

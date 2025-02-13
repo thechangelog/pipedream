@@ -55,7 +55,7 @@ sub vcl_recv {
     set req.url = "/health";
   }
 
-  set req.backend_hint = changelog.backend("changelog-2024-01-12.internal", "4000");
+  set req.backend_hint = changelog.backend("localhost", "5000");
 }
 
 # https://varnish-cache.org/docs/7.4/users-guide/vcl-grace.html
