@@ -27,18 +27,15 @@ func (m *Pipely) BuildContainer(ctx context.Context, source *dagger.Directory) *
 		WithExec([]string{"go", "install", "github.com/mattn/goreman@latest"})
 
 	binDir := build.Directory("/go/bin")
-	certsDir := build.Directory("/etc/ssl/certs")
-
-	procFile := source.File("Procfile")
-	vclFile := source.File("default.vcl")
 
 	return dag.Container().From("varnish:7.4.3").
-		WithDirectory("/apps", binDir).
-		WithDirectory("/etc/ssl/certs", certsDir).
 		WithEnvVariable("VARNISH_HTTP_PORT", "9000").
-		WithFile("/Procfile", procFile).
-		WithFile("/default.vcl", vclFile).
+		WithFile("/Procfile", source.File("Procfile")).
+		WithFile("/default.vcl", source.File("default.vcl")).
+		WithFile("/goreman", binDir.File("goreman")).
+		WithFile("/tls-exterminator", binDir.File("tls-exterminator")).
+		WithEnvVariable("VARNISH_HTTP_PORT", "9000").
 		WithExposedPort(9000).
 		WithWorkdir("/").
-		WithEntrypoint([]string{"/apps/goreman", "start"})
+		WithEntrypoint([]string{"/goreman", "start"})
 }
