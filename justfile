@@ -7,6 +7,7 @@ default:
 [private]
 fmt:
     just --fmt --check --unstable
+    just --version
 
 OS := if os() == "macos" { "apple" } else { "unknown" }
 OS_ALT := if os() == "macos" { "darwin" } else { "linux-gnu" }
@@ -15,7 +16,7 @@ BIN_PATH := LOCAL_PATH / "bin"
 
 # https://github.com/Orange-OpenSource/hurl/releases
 
-HURL_VERSION := "5.0.1"
+HURL_VERSION := "6.0.0"
 HURL_NAME := "hurl-" + HURL_VERSION + "-" + arch() + "-" + OS + "-" + OS_ALT
 HURL := LOCAL_PATH / HURL_NAME / "bin" / "hurl"
 
@@ -36,23 +37,27 @@ test *ARGS: (hurl "--test --color --report-html tmp --variable host=https://pipe
 report:
     open tmp/index.html
 
+# Open an interactive terminal in the debug container
+debug:
+    dagger call debug terminal --cmd=bash
+
+# Benchmark $url as http version $http with $reqs across $conns
+bench url="https://changelog.com" http="2" reqs="100000" conns="50":
+    oha -n {{ reqs }} -c {{ conns }} {{ url }} --http-version={{ http }}
+
+# Publish container image
+[group('team')]
+publish image="ghcr.io/thechangelog/pipely:latest":
+    #!/usr/bin/env bash
+    export GHCR_PASSWORD=$(op read op://Shared/CHANGELOG_GHCR_PASSWORD_2023_02_26/credential --account changelog.1password.com --cache)
+    set -ex
+    dagger call publish --registry-password=env:GHCR_PASSWORD
+
 # https://linux.101hacks.com/ps1-examples/prompt-color-using-tput/
 
-_BOLD := "$(tput bold)"
+[private]
 _RESET := "$(tput sgr0)"
-_BLACK := "$(tput bold)$(tput setaf 0)"
-_RED := "$(tput bold)$(tput setaf 1)"
+[private]
 _GREEN := "$(tput bold)$(tput setaf 2)"
-_YELLOW := "$(tput bold)$(tput setaf 3)"
-_BLUE := "$(tput bold)$(tput setaf 4)"
+[private]
 _MAGENTA := "$(tput bold)$(tput setaf 5)"
-_CYAN := "$(tput bold)$(tput setaf 6)"
-_WHITE := "$(tput bold)$(tput setaf 7)"
-_BLACKB := "$(tput bold)$(tput setab 0)"
-_REDB := "$(tput setab 1)$(tput setaf 0)"
-_GREENB := "$(tput setab 2)$(tput setaf 0)"
-_YELLOWB := "$(tput setab 3)$(tput setaf 0)"
-_BLUEB := "$(tput setab 4)$(tput setaf 0)"
-_MAGENTAB := "$(tput setab 5)$(tput setaf 0)"
-_CYANB := "$(tput setab 6)$(tput setaf 0)"
-_WHITEB := "$(tput setab 7)$(tput setaf 0)"
